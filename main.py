@@ -14,12 +14,48 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+import os
 import webapp2
+import jinja2
 
-class MainHandler(webapp2.RequestHandler):
-    def get(self):
-        self.response.write('Hello world!')
+from google.appengine.ext import db
+
+# set up jinja
+template_dir = os.path.join(os.path.dirname(__file__), "templates")
+jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape = True)
+
+class Handler(webapp2.RequestHandler):
+	def write(self, *a, **kw):
+		self.response.out.write(*a, **kw)
+
+	def render_str(self, template, **params):
+		t_pages = jinja_env.get_template(template)
+		return t_pages.render(params)
+
+	def render(self, template, **kw):
+		self.write(self.render_str(template, **kw))
+
+# class Art(db.Model):
+	
+
+class MainPage(Handler):
+		def render_front(self, title="", art="", error=""):
+			self.render("form.html", title=title, art=art, error=error)
+
+		def get(self):
+			self.render("form.html")
+
+		def post(self):
+			title = self.request.get("title")
+			art = self.request.get("art")
+
+			if title and art:
+				confirm = "thanks!"
+				self.render("base.html", confirm = confirm)
+			else:
+				error = "We need both a title and some artwork!"
+				self.render_front(title, art, error)
 
 app = webapp2.WSGIApplication([
-    ('/', MainHandler)
+    ('/', MainPage)
 ], debug=True)
