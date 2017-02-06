@@ -75,17 +75,18 @@ class Blog(Handler):
 		def get(self):
 			self.render_blog()
 
+class ViewPost(Handler):
+	def get(self, id):
+		post = Art.get_by_id((int(id)), parent=None)
+		if not post:
+			self.error(404)
+			return
+		self.render("blog.html", post=post)
 
-		# def post(self):
-		# 	title = self.request.get("title")
-		# 	art = self.request.get("art")
-
-		# 	if title and art:
-		# 		a = Art(title = title, art = art)
-		# 		a.put()
 
 app = webapp2.WSGIApplication([
 	('/', Main),
 	('/newpost', NewPost),
-	('/blog', Blog)
+	('/blog', Blog),
+	webapp2.Route('/blog/<id:\d+>', ViewPost)
 ], debug=True)
