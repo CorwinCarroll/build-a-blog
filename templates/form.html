@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+
     <form method="POST">
         <h3> Tell the world what's on your mind. They can't wait to hear it </h3>
         <label>
@@ -10,7 +11,7 @@
 
         <label>
             <div>Post</div>
-                <textarea name="art">{{art}}</textarea>
+                <textarea name="blogpost">{{blogpost}}</textarea>
         </label>
 
         <div class="error">{{error}}</div>

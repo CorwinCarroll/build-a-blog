@@ -1,10 +1,12 @@
 {% extends "base.html" %}
 
 {% block content %}
-	{% for art in arts %}
-		<div class="art">
-			<div class="art-title">{{art.title}}</div>
-			<pre class="art-body">{{art.art}}</pre>
+	{% for blogpost in blogposts %}
+
+		<div class="blogpost">
+			<div class="blogpost-title">{{blogpost.title}}</div>
+			<pre class="blogpost-body">{{blogpost.blogpost}}</pre>
 		</div>
+		
 	{% endfor %}
 {% endblock %}

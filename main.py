@@ -35,49 +35,62 @@ class Handler(webapp2.RequestHandler):
 	def render(self, template, **kw):
 		self.write(self.render_str(template, **kw))
 
-class Art(db.Model):
+class BlogPost(db.Model):
 	title = db.StringProperty(required = True)
-	art = db.TextProperty(required = True)
+	blogpost = db.TextProperty(required = True)
 	created = db.DateTimeProperty(auto_now_add = True)
 
 class Main(Handler):
-		def get(self):
-			self.redirect("/blog")
+	def get(self):
+		self.redirect("/blog")
 
 class NewPost(Handler):
-		def render_front(self, title="", art="", error=""):
-			arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC ")
+	def render_front(self, title="", blogpost="", error=""):
+		blogposts = db.GqlQuery("SELECT * FROM BlogPost ORDER BY created DESC ")
 
-			self.render("form.html", title=title, art=art, error=error, arts=arts)
+		self.render("form.html", title=title, blogpost=blogpost, error=error, blogposts=blogposts)
 
-		def get(self):
-			self.render_front()
+	def get(self):
+		self.render_front()
 
-		def post(self):
-			title = self.request.get("title")
-			art = self.request.get("art")
+	def post(self):
+		title = self.request.get("title")
+		blogpost = self.request.get("blogpost")
 
-			if title and art:
-				a = Art(title = title, art = art)
-				a.put()
+		if title and blogpost:
+			bp = BlogPost(title = title, blogpost = blogpost)
+			bp.put()
 
-				self.redirect("/blog")
-			else:
-				error = "We need both a title and a post to publish. Give it another go!"
-				self.render_front(title, art, error)
+			self.redirect("/blog")
+		else:
+			error = "We need both a title and a post to publish. Give it another go!"
+			self.render_front(title, blogpost, error)
+
+class Confirmation(Handler):
+	def render_confirmation(self):
+		self.render("confirm.html")
+
+	def get(self):
+		self.render_confirmation()
+
+	def post(self):
+		title = self.request.get("title")
+		blogpost = self.request.get("blogpost")
+
+
 
 class Blog(Handler):
-		def render_blog(self, title="", art="", error=""):
-			arts = db.GqlQuery("SELECT * FROM Art ORDER BY created DESC LIMIT 5 ")
+	def render_blog(self, title="", blogpost="", error=""):
+		blogposts = db.GqlQuery("SELECT * FROM BlogPost ORDER BY created DESC LIMIT 5 ")
 
-			self.render("blog.html", title=title, art=art, error=error, arts=arts)
+		self.render("blog.html", title=title, blogpost=blogpost, error=error, blogposts=blogposts)
 
-		def get(self):
-			self.render_blog()
+	def get(self):
+		self.render_blog()
 
 class ViewPost(Handler):
 	def get(self, id):
-		post = Art.get_by_id((int(id)), parent=None)
+		post = BlogPost.get_by_id((int(id)), parent=None)
 		if not post:
 			self.error(404)
 			return
@@ -88,5 +101,6 @@ app = webapp2.WSGIApplication([
 	('/', Main),
 	('/newpost', NewPost),
 	('/blog', Blog),
+	('/confirmation', Confirmation),
 	webapp2.Route('/blog/<id:\d+>', ViewPost)
 ], debug=True)
