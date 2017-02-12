@@ -89,12 +89,10 @@ class Blog(Handler):
 		self.render_blog()
 
 class ViewPost(Handler):
+	
 	def get(self, id):
-		post = BlogPost.get_by_id((int(id)), parent=None)
-		if not post:
-			self.error(404)
-			return
-		self.render("blog.html", post=post)
+		id = BlogPost.get_by_id( int(blogpost_id) )
+		self.response.write()
 
 
 app = webapp2.WSGIApplication([
