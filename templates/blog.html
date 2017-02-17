@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
 {% block content %}
-	{% for blogpost in blogposts %}
+	{% for blogpost in all_posts %}
 
 		<div class="blogpost">
-			<div class="blogpost-title">{{blogpost.title}}</div>
+			<a href="/blog/{{blogpost.key().id()}}"><div class="blogpost-title">{{blogpost.title}}</div></a>
 			<pre class="blogpost-body">{{blogpost.blogpost}}</pre>
 		</div>
 		

@@ -35,14 +35,39 @@ class Handler(webapp2.RequestHandler):
 	def render(self, template, **kw):
 		self.write(self.render_str(template, **kw))
 
+def blog_key(name = 'default'):
+	return db.Key.from_path('blogs', name)
+
+class Main(Handler):
+	def get(self):
+		self.redirect("/blog")
+
 class BlogPost(db.Model):
 	title = db.StringProperty(required = True)
 	blogpost = db.TextProperty(required = True)
 	created = db.DateTimeProperty(auto_now_add = True)
 
-class Main(Handler):
+class Blog(Handler):
+	def render_blog(self, title="", blogpost="", error=""):
+		blogposts = db.GqlQuery("SELECT * FROM BlogPost ORDER BY created DESC LIMIT 5 ")
+
+		self.render("blog.html", title=title, blogpost=blogpost, error=error, blogposts=blogposts)
+
 	def get(self):
-		self.redirect("/blog")
+		self.render_blog()
+
+class ViewPost(Handler):
+	
+	def get(self, blogpost_id):
+		key = db.Key.from_path('BlogPost', int(blogpost_id), parent=blog_key())
+		blogpost = db.get(key)
+
+		# self.error(404)
+		if not blogpost:
+			self.redirect("/blog")
+			return
+
+		self.render("post.html", blogpost = blogpost)
 
 class NewPost(Handler):
 	def render_front(self, title="", blogpost="", error=""):
@@ -58,10 +83,11 @@ class NewPost(Handler):
 		blogpost = self.request.get("blogpost")
 
 		if title and blogpost:
-			bp = BlogPost(title = title, blogpost = blogpost)
+			bp = BlogPost(parent = blog_key(), title = title, blogpost = blogpost)
 			bp.put()
+			blogpost = str(bp.key().id())
 
-			self.redirect("/blog")
+			self.redirect("/blog/%s" % blogpost)
 		else:
 			error = "We need both a title and a post to publish. Give it another go!"
 			self.render_front(title, blogpost, error)
@@ -78,36 +104,10 @@ class Confirmation(Handler):
 		blogpost = self.request.get("blogpost")
 
 
-
-class Blog(Handler):
-	def render_blog(self, title="", blogpost="", error=""):
-		all_posts = db.GqlQuery("SELECT * FROM BlogPost ORDER BY created DESC LIMIT 5 ")
-
-		self.render("blog.html", title=title, blogpost=blogpost, error=error, all_posts=all_posts)
-
-	def get(self):
-		self.render_blog()
-
-class ViewPost(Handler):
-
-	def view_post(self, id):
-
-		blogpost = BlogPost.get_by_id( int(id) )
-
-		if blogpost: 
-			self.render("post.html", blogpost=blogpost)
-		else:
-			self.render("notfound.html")
-
-
-	def get(self, id):
-		self.view_post(id)
-
-
 app = webapp2.WSGIApplication([
 	('/', Main),
 	('/newpost', NewPost),
 	('/blog', Blog),
 	('/confirmation', Confirmation),
-	webapp2.Route('/blog/<id:\d+>', ViewPost)
+	webapp2.Route('/blog/([0-9]+)', ViewPost)
 ], debug=True)
